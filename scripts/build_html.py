@@ -11,7 +11,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from collections import defaultdict
 
-EXCEL_PATH = Path("data/rates.xlsx")
+EXCEL_PATH = next(Path(".").glob("Customer Rate Tariff Template_Week *.xlsx"))
 OUTPUT_PATH = Path("docs/index.html")
 
 SURCHARGE_COLS = [
