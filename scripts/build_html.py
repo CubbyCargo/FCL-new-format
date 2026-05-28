@@ -17,14 +17,14 @@ OUTPUT_JSON_PATH  = Path("docs/rates.json")
 OUTPUT_QUOTE_PATH = Path("docs/quote.html")
 
 SURCHARGE_COLS = [
-    "OF", "THC ", "LAC", "ISPS", "Other Port Charges",
+    "OF", "THC", "LAC", "ISPS", "Other Port Charges",
     "GRI", "Dredging Fee", "Terminal Lease Surcharge",
     "Destination Terminal Handling Charge", "Local Handling", "Admin"
 ]
 
 SURCHARGE_LABELS = {
     "OF": "Ocean Freight",
-    "THC ": "THC",
+    "THC": "THC",
     "LAC": "LAC",
     "ISPS": "ISPS",
     "Other Port Charges": "Other Port Charges",
