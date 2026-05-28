@@ -1,0 +1,45 @@
+name: Build FCL Rate Tariff
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+
+  # Scheduled: every Monday at 7am UTC (11pm TT time Sunday)
+  schedule:
+    - cron: "0 7 * * 1"
+
+  # Auto-trigger when you push a new Excel or update the build script
+  push:
+    branches:
+      - main
+    paths:
+      - "data/rates.xlsx"
+      - "scripts/build_html.py"
+      - ".github/workflows/build.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build HTML from Excel
+        run: python scripts/build_html.py
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          commit_message: "chore: rebuild tariff [skip ci]"
