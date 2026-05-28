@@ -491,24 +491,23 @@ def build_json(cards):
 # quote.html
 # ─────────────────────────────────────────────
 def build_quote(cards):
-    # Build JS data blob for the quote page
     lanes_js = json.dumps([
         {
-            "lane":    c["lane"],
-            "origin":  c["origin"],
-            "dest":    c["dest"],
-            "rates":   [
+            "lane":   c["lane"],
+            "origin": c["origin"],
+            "dest":   c["dest"],
+            "rates":  [
                 {
-                    "pol":           r["pol"],
-                    "pod":           r["pod"],
-                    "container":     r["container"],
-                    "commodity":     r["commodity"],
-                    "carrier":       r["carrier"],
-                    "agent":         r["agent"],
-                    "transit":       r["transit"],
-                    "validity":      r["validity"],
-                    "surcharges":    r["surcharges"],
-                    "total_no_ins":  r["total_no_ins"],
+                    "pol":            r["pol"],
+                    "pod":            r["pod"],
+                    "container":      r["container"],
+                    "commodity":      r["commodity"],
+                    "carrier":        r["carrier"],
+                    "agent":          r["agent"],
+                    "transit":        r["transit"],
+                    "validity":       r["validity"],
+                    "surcharges":     r["surcharges"],
+                    "total_no_ins":   r["total_no_ins"],
                     "total_with_ins": r["total_with_ins"],
                 }
                 for r in c["rate_rows"]
@@ -534,42 +533,67 @@ def build_quote(cards):
   }}
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{ font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }}
-  header {{ background: var(--purple); color: white; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }}
-  header h1 {{ font-size: 1.2rem; font-weight: 800; }}
-  header a {{ color: var(--green); font-size: 12px; text-decoration: none; }}
-  .subtitle {{ background: linear-gradient(90deg, var(--purple-dark), var(--purple)); color: var(--green); padding: 5px 32px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }}
-  .main {{ max-width: 900px; margin: 28px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 20px; }}
 
-  /* Form */
-  .form-card {{ background: var(--white); border-radius: 12px; border: 1.5px solid var(--border); box-shadow: var(--shadow); padding: 24px; }}
-  .form-card h2 {{ font-size: 14px; font-weight: 700; color: var(--purple); margin-bottom: 18px; letter-spacing: 0.3px; }}
-  .form-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }}
-  .field {{ display: flex; flex-direction: column; gap: 5px; }}
-  .field label {{ font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }}
-  .field input, .field select {{
-    border: 1.5px solid var(--border); border-radius: 7px; padding: 8px 11px;
-    font-size: 13px; color: var(--text); background: var(--white); outline: none;
-    transition: border-color 0.15s;
+  /* ── Screen-only elements ── */
+  @media screen {{
+    header {{ background: var(--purple); color: white; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }}
+    header h1 {{ font-size: 1.2rem; font-weight: 800; }}
+    header a {{ color: var(--green); font-size: 12px; text-decoration: none; }}
+    .subtitle {{ background: linear-gradient(90deg, var(--purple-dark), var(--purple)); color: var(--green); padding: 5px 32px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }}
+    .main {{ max-width: 900px; margin: 28px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 20px; }}
+    .form-card {{ background: var(--white); border-radius: 12px; border: 1.5px solid var(--border); box-shadow: var(--shadow); padding: 24px; }}
+    .form-card h2 {{ font-size: 14px; font-weight: 700; color: var(--purple); margin-bottom: 18px; }}
+    .form-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }}
+    .field {{ display: flex; flex-direction: column; gap: 5px; }}
+    .field label {{ font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }}
+    .field input, .field select {{
+      border: 1.5px solid var(--border); border-radius: 7px; padding: 8px 11px;
+      font-size: 13px; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s;
+    }}
+    .field input:focus, .field select:focus {{ border-color: var(--purple); }}
+    .field select:disabled {{ background: #f5f3fa; color: var(--muted); }}
+    .btn-search {{
+      margin-top: 6px; background: var(--purple); color: white; border: none;
+      border-radius: 8px; padding: 10px 28px; font-size: 13px; font-weight: 700; cursor: pointer;
+    }}
+    .btn-search:hover {{ background: var(--purple-dark); }}
+    .results-card {{ background: var(--white); border-radius: 12px; border: 1.5px solid var(--border); box-shadow: var(--shadow); padding: 24px; display: none; }}
+    .results-card h2 {{ font-size: 14px; font-weight: 700; color: var(--purple); margin-bottom: 16px; }}
+    .rate-row {{
+      border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+      display: grid; grid-template-columns: 1fr 1fr 1.5fr auto; gap: 12px; align-items: start; cursor: pointer;
+    }}
+    .rate-row:hover {{ border-color: var(--purple); background: var(--purple-light); }}
+    .rate-row.selected {{ border-color: var(--green-dark); background: var(--green-bg); }}
+    .btn-pdf {{
+      background: var(--purple); color: white; border: none; border-radius: 8px;
+      padding: 10px 24px; font-size: 13px; font-weight: 700; cursor: pointer;
+    }}
+    .btn-pdf:hover {{ background: var(--purple-dark); }}
+    .quote-card {{ background: var(--white); border-radius: 12px; border: 1.5px solid var(--border); box-shadow: var(--shadow); padding: 28px; display: none; }}
   }}
-  .field input:focus, .field select:focus {{ border-color: var(--purple); }}
-  .field select:disabled {{ background: #f5f3fa; color: var(--muted); }}
-  .btn-search {{
-    margin-top: 6px; background: var(--purple); color: white; border: none;
-    border-radius: 8px; padding: 10px 28px; font-size: 13px; font-weight: 700;
-    cursor: pointer; transition: background 0.15s;
-  }}
-  .btn-search:hover {{ background: var(--purple-dark); }}
 
-  /* Results */
-  .results-card {{ background: var(--white); border-radius: 12px; border: 1.5px solid var(--border); box-shadow: var(--shadow); padding: 24px; display: none; }}
-  .results-card h2 {{ font-size: 14px; font-weight: 700; color: var(--purple); margin-bottom: 16px; }}
-  .rate-row {{
-    border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px;
-    margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr 1.5fr auto;
-    gap: 12px; align-items: start; cursor: pointer; transition: border-color 0.15s;
+  /* ── Print styles — quote only, one page, no nav ── */
+  @media print {{
+    @page {{ size: A4; margin: 18mm 18mm 14mm 18mm; }}
+    header, .subtitle, .form-card, .results-card, .btn-pdf {{ display: none !important; }}
+    body {{ background: white; font-size: 12px; }}
+    .main {{ margin: 0; padding: 0; max-width: 100%; gap: 0; }}
+    .quote-card {{
+      display: block !important; border: none; box-shadow: none; padding: 0;
+      border-radius: 0; page-break-inside: avoid;
+    }}
+    .ins-push, .quote-notes {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+    .quote-lane-banner {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+    .total-box {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+    .detail-block {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+    .print-logo {{ display: block !important; }}
   }}
-  .rate-row:hover {{ border-color: var(--purple); background: var(--purple-light); }}
-  .rate-row.selected {{ border-color: var(--green-dark); background: var(--green-bg); }}
+
+  /* ── Shared styles (screen + print) ── */
+  .print-logo {{ display: none; margin-bottom: 16px; }}
+  .print-logo h2 {{ font-size: 1.1rem; font-weight: 800; color: var(--purple); }}
+  .print-logo p {{ font-size: 10px; color: var(--muted); margin-top: 2px; }}
   .rate-meta {{ font-size: 11px; color: var(--muted); margin-top: 3px; }}
   .rate-carrier {{ font-weight: 700; color: var(--purple); }}
   .surcharge-list {{ font-size: 11px; }}
@@ -578,63 +602,40 @@ def build_quote(cards):
   .surcharge-line span:last-child {{ font-weight: 600; color: var(--purple); }}
   .totals {{ text-align: right; }}
   .total-no {{ font-size: 13px; color: var(--muted); margin-bottom: 6px; }}
-  .total-with {{
-    font-size: 18px; font-weight: 800; color: var(--green-dark);
-    background: var(--green-bg); border: 1.5px solid var(--green);
-    border-radius: 7px; padding: 6px 12px; display: inline-block;
-  }}
+  .total-with {{ font-size: 18px; font-weight: 800; color: var(--green-dark); background: var(--green-bg); border: 1.5px solid var(--green); border-radius: 7px; padding: 6px 12px; display: inline-block; }}
   .ins-note {{ font-size: 9px; color: var(--green-dark); display: block; margin-top: 2px; }}
   .tag {{ background: var(--purple); color: white; border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700; }}
   .no-results {{ color: var(--muted); font-size: 13px; padding: 12px 0; }}
-
-  /* Quote preview */
-  .quote-card {{ background: var(--white); border-radius: 12px; border: 1.5px solid var(--border); box-shadow: var(--shadow); padding: 28px; display: none; }}
-  .quote-header {{ display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }}
+  .quote-header {{ display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }}
   .quote-title {{ font-size: 1.1rem; font-weight: 800; color: var(--purple); }}
   .quote-meta {{ font-size: 11px; color: var(--muted); margin-top: 4px; }}
   .quote-ref {{ font-size: 11px; color: var(--muted); text-align: right; }}
-  .quote-lane-banner {{
-    background: linear-gradient(135deg, var(--purple), var(--purple-dark));
-    color: white; border-radius: 8px; padding: 12px 18px;
-    display: flex; align-items: center; gap: 10px;
-    font-size: 1rem; font-weight: 800; margin-bottom: 18px;
-  }}
+  .quote-lane-banner {{ background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: white; border-radius: 8px; padding: 11px 16px; display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 800; margin-bottom: 16px; }}
   .quote-lane-banner .dest {{ color: var(--green); }}
-  .quote-details {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }}
-  .detail-block {{ background: var(--purple-light); border-radius: 8px; padding: 12px 14px; }}
-  .detail-block h4 {{ font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--purple); margin-bottom: 8px; }}
-  .detail-line {{ display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px solid #e4ddf5; }}
+  .quote-details {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }}
+  .detail-block {{ background: var(--purple-light); border-radius: 8px; padding: 11px 13px; }}
+  .detail-block h4 {{ font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--purple); margin-bottom: 7px; }}
+  .detail-line {{ display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0; border-bottom: 1px solid #e4ddf5; }}
   .detail-line:last-child {{ border-bottom: none; }}
   .detail-line .val {{ font-weight: 600; }}
-  .quote-totals {{ display: flex; gap: 14px; margin-bottom: 20px; }}
-  .total-box {{ flex: 1; border-radius: 9px; padding: 14px 18px; text-align: center; }}
+  .quote-totals {{ display: flex; gap: 12px; margin-bottom: 14px; }}
+  .total-box {{ flex: 1; border-radius: 9px; padding: 12px 16px; text-align: center; }}
   .total-box.no-ins {{ background: #f5f3fa; border: 1.5px solid var(--border); }}
   .total-box.with-ins {{ background: var(--green-bg); border: 2px solid var(--green); }}
-  .total-box .label {{ font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }}
+  .total-box .label {{ font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 5px; }}
   .total-box.with-ins .label {{ color: var(--green-dark); }}
-  .total-box .amount {{ font-size: 22px; font-weight: 800; }}
+  .total-box .amount {{ font-size: 20px; font-weight: 800; }}
   .total-box.no-ins .amount {{ color: var(--muted); }}
   .total-box.with-ins .amount {{ color: var(--green-dark); }}
-  .ins-push {{
-    background: linear-gradient(90deg, var(--green-bg), #e8fded);
-    border: 1.5px solid var(--green); border-radius: 8px; padding: 12px 16px;
-    font-size: 12px; color: var(--green-dark); margin-bottom: 18px;
-  }}
-  .ins-push strong {{ font-size: 13px; }}
-  .quote-notes {{ font-size: 11px; color: var(--muted); line-height: 1.7; background: var(--purple-light); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; }}
-  .btn-pdf {{
-    background: var(--purple); color: white; border: none; border-radius: 8px;
-    padding: 10px 24px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s;
-  }}
-  .btn-pdf:hover {{ background: var(--purple-dark); }}
+  .ins-push {{ background: linear-gradient(90deg, var(--green-bg), #e8fded); border: 1.5px solid var(--green); border-radius: 8px; padding: 10px 14px; font-size: 11px; color: var(--green-dark); margin-bottom: 14px; }}
+  .ins-push strong {{ font-size: 12px; }}
+  .quote-notes {{ font-size: 10px; color: var(--muted); line-height: 1.6; background: var(--purple-light); border-radius: 8px; padding: 10px 14px; }}
 
   @media (max-width: 600px) {{
     .form-grid {{ grid-template-columns: 1fr; }}
     .rate-row {{ grid-template-columns: 1fr; }}
     .quote-details {{ grid-template-columns: 1fr; }}
     .quote-totals {{ flex-direction: column; }}
-    header {{ padding: 14px 16px; }}
-    .main {{ padding: 0 12px; }}
   }}
 </style>
 </head>
@@ -646,7 +647,7 @@ def build_quote(cards):
 <div class="subtitle">FCL All-in Rates (USD) · Subject to space &amp; equipment availability</div>
 
 <div class="main">
-  <!-- Form -->
+  <!-- Search form -->
   <div class="form-card">
     <h2>📋 Shipment Details</h2>
     <div class="form-grid">
@@ -656,7 +657,7 @@ def build_quote(cards):
       </div>
       <div class="field">
         <label>Quote Reference</label>
-        <input type="text" id="quoteref" placeholder="e.g. QT-2026-001"/>
+        <input type="text" id="quoteref" placeholder="Auto-generated"/>
       </div>
       <div class="field">
         <label>Destination</label>
@@ -673,10 +674,8 @@ def build_quote(cards):
       </div>
       <div class="field">
         <label>Container Size</label>
-        <select id="sel-size">
-          <option value="">All sizes</option>
-          <option value="20">20ft</option>
-          <option value="40">40ft</option>
+        <select id="sel-size" disabled>
+          <option value="">Select size</option>
         </select>
       </div>
     </div>
@@ -689,8 +688,13 @@ def build_quote(cards):
     <div id="results-list"></div>
   </div>
 
-  <!-- Quote preview -->
+  <!-- Quote preview (screen + print) -->
   <div class="quote-card" id="quote-card">
+    <!-- Print-only logo block -->
+    <div class="print-logo">
+      <h2>🚢 Cubby Cargo — FCL Shipping Quote</h2>
+      <p>Ramps Logistics Ltd · ramps.co.tt · All rates in USD</p>
+    </div>
     <div class="quote-header">
       <div>
         <div class="quote-title">FCL Shipping Quote</div>
@@ -724,7 +728,7 @@ def build_quote(cards):
       </div>
     </div>
     <div class="ins-push">
-      🛡 <strong>Protect your cargo for just USD $200.</strong> Marine Insurance covers a C&amp;F value of up to USD $30,000. Ask your Cubby representative to include it in your booking — it's the smart move.
+      🛡 <strong>Protect your cargo for just USD $200.</strong> Marine Insurance covers a C&amp;F value of up to USD $30,000. Ask your Cubby representative to include it in your booking.
     </div>
     <div class="quote-notes">
       Rates are subject to space and equipment validity. Cargo must be ingated on or before the validity date; updated rates may apply thereafter.
@@ -738,12 +742,26 @@ def build_quote(cards):
 <script>
 const LANES = {lanes_js};
 
-// Populate lane dropdown when destination changes
+// Auto-generate quote ref on load
+(function() {{
+  const now = new Date();
+  const yy = now.getFullYear();
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const dd = String(now.getDate()).padStart(2,'0');
+  const seq = String(Math.floor(Math.random()*900)+100);
+  document.getElementById('quoteref').value = `QT-${{yy}}${{mm}}${{dd}}-${{seq}}`;
+}})();
+
+// When destination changes → populate lanes
 document.getElementById('sel-dest').addEventListener('change', function() {{
   const dest = this.value;
   const laneEl = document.getElementById('sel-lane');
+  const sizeEl = document.getElementById('sel-size');
   laneEl.innerHTML = '<option value="">Select lane</option>';
-  if (!dest) {{ laneEl.disabled = true; return; }}
+  sizeEl.innerHTML = '<option value="">Select size</option>';
+  laneEl.disabled = true;
+  sizeEl.disabled = true;
+  if (!dest) return;
   const matching = LANES.filter(l => l.dest === dest);
   matching.forEach(l => {{
     const opt = document.createElement('option');
@@ -752,6 +770,25 @@ document.getElementById('sel-dest').addEventListener('change', function() {{
     laneEl.appendChild(opt);
   }});
   laneEl.disabled = false;
+}});
+
+// When lane changes → populate only available sizes
+document.getElementById('sel-lane').addEventListener('change', function() {{
+  const lane = this.value;
+  const sizeEl = document.getElementById('sel-size');
+  sizeEl.innerHTML = '<option value="">All sizes</option>';
+  sizeEl.disabled = true;
+  if (!lane) return;
+  const laneData = LANES.find(l => l.lane === lane);
+  if (!laneData) return;
+  const sizes = [...new Set(laneData.rates.map(r => r.container))].sort();
+  sizes.forEach(s => {{
+    const opt = document.createElement('option');
+    opt.value = s.startsWith('20') ? '20' : '40';
+    opt.textContent = s;
+    sizeEl.appendChild(opt);
+  }});
+  sizeEl.disabled = false;
 }});
 
 let selectedRate = null;
@@ -779,7 +816,7 @@ function doSearch() {{
   count.textContent = `(${{rates.length}} result${{rates.length !== 1 ? 's' : ''}})`;
 
   if (rates.length === 0) {{
-    list.innerHTML = '<div class="no-results">No rates found for that selection. Try adjusting the filters.</div>';
+    list.innerHTML = '<div class="no-results">No rates found for that selection.</div>';
     return;
   }}
 
@@ -803,8 +840,8 @@ function doSearch() {{
       </div>
       <div class="surcharge-list">${{surchargeLines}}</div>
       <div class="totals">
-        <div class="total-no">$${{(r.total_no_ins||0).toLocaleString('en-US', {{minimumFractionDigits:2,maximumFractionDigits:2}})}}<br><small>excl. ins.</small></div>
-        <div class="total-with">$${{(r.total_with_ins||0).toLocaleString('en-US', {{minimumFractionDigits:2,maximumFractionDigits:2}})}}<span class="ins-note">🛡 insured</span></div>
+        <div class="total-no">$${{(r.total_no_ins||0).toLocaleString('en-US',{{minimumFractionDigits:2,maximumFractionDigits:2}})}}<br><small>excl. ins.</small></div>
+        <div class="total-with">$${{(r.total_with_ins||0).toLocaleString('en-US',{{minimumFractionDigits:2,maximumFractionDigits:2}})}}<span class="ins-note">🛡 insured</span></div>
       </div>
     </div>`;
   }}).join('');
@@ -817,9 +854,8 @@ function doSearch() {{
 function selectRate(i) {{
   document.querySelectorAll('.rate-row').forEach(el => el.classList.remove('selected'));
   document.getElementById('rr-' + i).classList.add('selected');
-  const r = window._searchRates[i];
-  selectedRate = r;
-  renderQuote(r);
+  selectedRate = window._searchRates[i];
+  renderQuote(selectedRate);
 }}
 
 function fmt(v) {{
@@ -829,7 +865,7 @@ function fmt(v) {{
 
 function renderQuote(r) {{
   const customer = document.getElementById('customer').value || '—';
-  const ref = document.getElementById('quoteref').value || ('QT-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4));
+  const ref = document.getElementById('quoteref').value;
   const today = new Date().toLocaleDateString('en-GB', {{day:'2-digit',month:'short',year:'numeric'}});
 
   document.getElementById('q-customer').textContent = `Prepared for: ${{customer}} · Date: ${{today}}`;
@@ -839,7 +875,8 @@ function renderQuote(r) {{
 
   document.getElementById('q-shipment-lines').innerHTML = [
     ['POL', r.pol], ['POD', r.pod], ['Container', r.container],
-    ['Commodity', r.commodity || '—'], ['Carrier', r.carrier + (r.agent ? ` / ${{r.agent}}` : '')],
+    ['Commodity', r.commodity || '—'],
+    ['Carrier', r.carrier + (r.agent ? ` / ${{r.agent}}` : '')],
     ['Transit Time', r.transit ? r.transit + ' days' : '—'],
     ['Validity', r.validity || '—'],
   ].map(([k,v]) => `<div class="detail-line"><span>${{k}}</span><span class="val">${{v}}</span></div>`).join('');
