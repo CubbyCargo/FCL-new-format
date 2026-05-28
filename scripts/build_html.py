@@ -180,14 +180,12 @@ def render_html(cards):
     # Build cards HTML
     cards_html = ""
     for c in cards:
-        origin_slug = c["origin"].lower().replace(" ", "-").replace("&", "and")
         dest_slug = c["dest"].lower().replace(" ", "-").replace("&", "and").replace("(", "").replace(")", "")
 
-        # Build rate table rows
         table_rows = ""
         for r in c["rate_rows"]:
-            surcharge_breakdown = " + ".join(
-                f'<span class="surcharge-item">{k}: {fmt_usd(v)}</span>'
+            surcharge_breakdown = "".join(
+                f'<div class="surcharge-item"><span class="surcharge-label">{k}</span><span class="surcharge-val">{fmt_usd(v)}</span></div>'
                 for k, v in r["surcharges"].items()
             )
             agent_note = f'<div class="agent-note">{r["agent"]}</div>' if r["agent"] else ""
@@ -199,9 +197,13 @@ def render_html(cards):
               <td class="carrier-cell">{r["carrier"]}{agent_note}</td>
               <td class="transit-cell">{r["transit"]}</td>
               <td class="validity-cell">{r["validity"]}</td>
-              <td class="surcharge-cell">{surcharge_breakdown}</td>
-              <td class="total-cell"><span class="total-no-ins">{fmt_usd(r["total_no_ins"])}</span></td>
-              <td class="total-cell total-with"><strong>{fmt_usd(r["total_with_ins"])}</strong></td>
+              <td class="surcharge-cell"><div class="surcharge-grid">{surcharge_breakdown}</div></td>
+              <td class="total-cell">
+                <div class="rate-block">
+                  <div class="rate-no-ins">{fmt_usd(r["total_no_ins"])}<span class="rate-label">excl. insurance</span></div>
+                  <div class="rate-with-ins">{fmt_usd(r["total_with_ins"])}<span class="rate-label ins-label">🛡 insured</span></div>
+                </div>
+              </td>
             </tr>"""
 
         carriers_badges = " ".join(f'<span class="badge">{cr}</span>' for cr in c["carriers"])
@@ -219,7 +221,7 @@ def render_html(cards):
         <div class="card-meta">
           <span class="meta-item">🚢 {carriers_badges}</span>
           <span class="meta-item">⏱ {transit_range}</span>
-          <span class="meta-item">📅 Valid: {validity_range}</span>
+          <span class="meta-item">📅 {validity_range}</span>
         </div>
       </div>
       <div class="card-body">
@@ -234,8 +236,7 @@ def render_html(cards):
                 <th>Transit</th>
                 <th>Validity</th>
                 <th>Surcharge Breakdown</th>
-                <th>Total (no ins.)</th>
-                <th>Total (with ins.)</th>
+                <th>Rate</th>
               </tr>
             </thead>
             <tbody>{table_rows}</tbody>
@@ -252,65 +253,132 @@ def render_html(cards):
 <title>Cubby Cargo – FCL Rate Tariff</title>
 <style>
   :root {{
-    --cubby-blue: #1a3a5c;
-    --cubby-orange: #f4821f;
-    --cubby-light: #f7f9fc;
-    --border: #dde3ec;
-    --text: #1e2a3a;
-    --muted: #6b7a8d;
-    --card-shadow: 0 2px 12px rgba(26,58,92,0.08);
+    --purple: #6b22d3;
+    --purple-dark: #4e12a8;
+    --purple-light: #f3eeff;
+    --green: #8bea98;
+    --green-dark: #2db84b;
+    --green-bg: #f0fdf3;
+    --white: #ffffff;
+    --bg: #f8f7fc;
+    --border: #e4ddf5;
+    --text: #1a1030;
+    --muted: #7a6e8a;
+    --card-shadow: 0 2px 16px rgba(107,34,211,0.08);
   }}
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-  body {{ font-family: 'Segoe UI', Arial, sans-serif; background: var(--cubby-light); color: var(--text); font-size: 13px; }}
-  header {{ background: var(--cubby-blue); color: white; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }}
-  header h1 {{ font-size: 1.3rem; font-weight: 700; letter-spacing: 0.3px; }}
-  header .generated {{ font-size: 11px; opacity: 0.7; }}
-  .subtitle {{ background: var(--cubby-orange); color: white; padding: 6px 32px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }}
-  .controls {{ padding: 16px 32px; background: white; border-bottom: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }}
-  .controls label {{ font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px; }}
-  .filter-btn {{
-    background: var(--cubby-light); border: 1px solid var(--border); border-radius: 20px;
-    padding: 5px 14px; font-size: 12px; cursor: pointer; color: var(--text); transition: all 0.15s;
+  body {{ font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }}
+
+  /* ── Header ── */
+  header {{ background: var(--purple); color: white; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }}
+  header h1 {{ font-size: 1.25rem; font-weight: 800; letter-spacing: 0.3px; }}
+  header .generated {{ font-size: 11px; opacity: 0.65; }}
+  .subtitle {{
+    background: linear-gradient(90deg, var(--purple-dark), var(--purple));
+    color: var(--green); padding: 5px 32px; font-size: 11px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
   }}
-  .filter-btn:hover, .filter-btn.active {{ background: var(--cubby-blue); color: white; border-color: var(--cubby-blue); }}
-  .filter-btn.all-btn.active {{ background: var(--cubby-orange); border-color: var(--cubby-orange); }}
-  .main {{ padding: 24px 32px; display: flex; flex-direction: column; gap: 20px; }}
-  .card {{ background: white; border-radius: 10px; box-shadow: var(--card-shadow); overflow: hidden; border: 1px solid var(--border); }}
-  .card-header {{ background: var(--cubby-blue); color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; }}
-  .lane-title {{ display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 700; }}
-  .origin-label {{ font-size: 1rem; }}
-  .dest-label {{ color: #f4d03f; font-size: 1rem; }}
-  .arrow {{ color: var(--cubby-orange); font-size: 1.1rem; }}
-  .card-meta {{ display: flex; gap: 14px; font-size: 11px; opacity: 0.9; flex-wrap: wrap; align-items: center; }}
-  .meta-item {{ display: flex; align-items: center; gap: 4px; }}
-  .badge {{ background: rgba(255,255,255,0.18); border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 600; }}
+
+  /* ── Filters ── */
+  .controls {{
+    padding: 14px 32px; background: var(--white); border-bottom: 1px solid var(--border);
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }}
+  .controls label {{ font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-right: 4px; }}
+  .filter-btn {{
+    background: var(--white); border: 1.5px solid var(--border); border-radius: 20px;
+    padding: 5px 14px; font-size: 12px; cursor: pointer; color: var(--muted);
+    transition: all 0.15s; font-weight: 500;
+  }}
+  .filter-btn:hover {{ border-color: var(--purple); color: var(--purple); }}
+  .filter-btn.active {{ background: var(--purple); color: white; border-color: var(--purple); font-weight: 600; }}
+  .filter-btn.all-btn.active {{ background: var(--purple-dark); }}
+
+  /* ── Cards ── */
+  .main {{ padding: 24px 32px; display: flex; flex-direction: column; gap: 18px; }}
+  .card {{ background: var(--white); border-radius: 12px; box-shadow: var(--card-shadow); overflow: hidden; border: 1.5px solid var(--border); }}
+  .card-header {{
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+    color: white; padding: 14px 20px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  }}
+  .lane-title {{ display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 800; }}
+  .dest-label {{ color: var(--green); }}
+  .arrow {{ color: rgba(255,255,255,0.5); font-size: 1rem; }}
+  .card-meta {{ display: flex; gap: 16px; font-size: 11px; opacity: 0.9; flex-wrap: wrap; align-items: center; }}
+  .badge {{ background: rgba(255,255,255,0.15); border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700; }}
+
+  /* ── Table ── */
   .card-body {{ padding: 0; }}
   .table-wrapper {{ overflow-x: auto; }}
   table {{ width: 100%; border-collapse: collapse; font-size: 12px; }}
-  thead tr {{ background: #eef2f8; }}
-  th {{ padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); border-bottom: 2px solid var(--border); white-space: nowrap; }}
-  td {{ padding: 8px 12px; border-bottom: 1px solid #f0f3f7; vertical-align: top; }}
+  thead tr {{ background: var(--purple-light); }}
+  th {{
+    padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--purple);
+    border-bottom: 2px solid var(--border); white-space: nowrap;
+  }}
+  td {{ padding: 10px 12px; border-bottom: 1px solid #f0ecfa; vertical-align: top; }}
   tr:last-child td {{ border-bottom: none; }}
-  tr:hover td {{ background: #f7faff; }}
-  .tag {{ background: var(--cubby-blue); color: white; border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700; white-space: nowrap; }}
-  .pol-cell {{ font-weight: 600; }}
+  tr:hover td {{ background: #faf8ff; }}
+
+  /* ── Cell styles ── */
+  .tag {{
+    background: var(--purple); color: white; border-radius: 5px;
+    padding: 3px 9px; font-size: 10px; font-weight: 700; white-space: nowrap;
+  }}
+  .pol-cell {{ font-weight: 600; color: var(--text); }}
   .pod-sub {{ font-size: 10px; color: var(--muted); font-weight: 400; margin-top: 2px; }}
-  .commodity-cell {{ color: var(--muted); }}
-  .carrier-cell {{ font-weight: 600; color: var(--cubby-blue); }}
+  .commodity-cell {{ color: var(--muted); font-size: 11px; }}
+  .carrier-cell {{ font-weight: 700; color: var(--purple); }}
   .agent-note {{ font-size: 10px; color: var(--muted); font-weight: 400; margin-top: 2px; }}
-  .transit-cell, .validity-cell {{ white-space: nowrap; color: var(--muted); }}
-  .surcharge-cell {{ max-width: 280px; }}
-  .surcharge-item {{ display: inline-block; background: #f0f3f7; border-radius: 3px; padding: 1px 5px; margin: 1px; font-size: 10px; color: var(--muted); }}
-  .total-no-ins {{ color: var(--muted); }}
-  .total-with {{ background: #fff8f0; }}
-  .total-with strong {{ color: var(--cubby-orange); font-size: 13px; }}
-  .notes {{ background: #fffbe6; border: 1px solid #ffe082; border-radius: 8px; padding: 14px 20px; margin: 0 32px 24px; font-size: 11px; color: #7a6000; line-height: 1.6; }}
-  .notes strong {{ display: block; margin-bottom: 4px; }}
+  .transit-cell, .validity-cell {{ white-space: nowrap; color: var(--muted); font-size: 11px; }}
+
+  /* ── Surcharge breakdown ── */
+  .surcharge-cell {{ min-width: 220px; max-width: 320px; }}
+  .surcharge-grid {{ display: flex; flex-direction: column; gap: 3px; }}
+  .surcharge-item {{
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--purple-light); border-radius: 4px; padding: 3px 8px;
+    font-size: 11px;
+  }}
+  .surcharge-label {{ color: var(--muted); font-weight: 500; }}
+  .surcharge-val {{ color: var(--purple); font-weight: 700; margin-left: 8px; }}
+
+  /* ── Rate block (side by side totals) ── */
+  .rate-block {{ display: flex; flex-direction: column; gap: 6px; min-width: 130px; }}
+  .rate-no-ins {{
+    display: flex; flex-direction: column;
+    font-size: 14px; font-weight: 700; color: var(--muted);
+    background: #f5f3fa; border-radius: 6px; padding: 6px 10px;
+  }}
+  .rate-with-ins {{
+    display: flex; flex-direction: column;
+    font-size: 16px; font-weight: 800; color: var(--green-dark);
+    background: var(--green-bg); border: 1.5px solid var(--green);
+    border-radius: 6px; padding: 6px 10px;
+  }}
+  .rate-label {{
+    font-size: 9px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--muted); margin-top: 2px;
+  }}
+  .ins-label {{ color: var(--green-dark); }}
+
+  /* ── Notes ── */
+  .notes {{
+    background: var(--purple-light); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 16px 22px; margin: 0 32px 28px;
+    font-size: 11px; color: var(--purple-dark); line-height: 1.7;
+  }}
+  .notes strong {{ display: block; margin-bottom: 6px; font-size: 12px; color: var(--purple); }}
+
   .hidden {{ display: none !important; }}
+
   @media (max-width: 700px) {{
     header {{ padding: 14px 16px; }}
-    .main {{ padding: 16px; }}
+    .main {{ padding: 14px; }}
     .controls {{ padding: 12px 16px; }}
+    .notes {{ margin: 0 14px 20px; }}
   }}
 </style>
 </head>
@@ -319,7 +387,7 @@ def render_html(cards):
   <h1>🚢 Cubby Cargo — FCL Rate Tariff</h1>
   <span class="generated">Generated: {generated}</span>
 </header>
-<div class="subtitle">ALL-IN RATES (USD) · FCL ONLY · SUBJECT TO SPACE & EQUIPMENT AVAILABILITY</div>
+<div class="subtitle">All-in rates (USD) · FCL only · Subject to space &amp; equipment availability</div>
 <div class="controls">
   <label>Filter by Destination:</label>
   <button class="filter-btn all-btn active" data-dest="all">All Destinations</button>
@@ -330,9 +398,9 @@ def render_html(cards):
 </div>
 <div class="notes">
   <strong>📋 Important Notes</strong>
-  Rates are subject to space and equipment validity. Cargo must be ingated on or before the specified validity date; updated rates may apply if container is not ingated by said date.
-  Insurance covers a C&amp;F value of USD $30,000.00. Values greater than USD $30,000 as well as restricted commodities must be quoted on a case-by-case basis.
-  Should client refuse Marine Insurance provided by Ramps Logistics, Ramps Logistics shall not be held liable for any claims, loss or damages resulting from the execution of services quoted and accepted by client.
+  Rates are subject to space and equipment validity. Cargo must be ingated on or before the specified validity date; updated rates may apply if container is not ingated by said date.<br/>
+  Marine Insurance covers a C&amp;F value of USD $30,000.00 at an additional <strong>$200</strong>. Values greater than USD $30,000 as well as restricted commodities must be quoted on a case-by-case basis.<br/>
+  Should client decline Marine Insurance provided by Ramps Logistics, Ramps Logistics shall not be held liable for any claims, loss or damages arising from the execution of services.
 </div>
 <script>
   const btns = document.querySelectorAll('.filter-btn');
